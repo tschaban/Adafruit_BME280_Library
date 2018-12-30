@@ -38,7 +38,7 @@
     @brief  default I2C address
 */
 /**************************************************************************/
-#define BME280_ADDRESS (0x77)
+#define BME280_ADDRESS (0x76)
 /*=========================================================================*/
 
 /**************************************************************************/
@@ -201,10 +201,14 @@ public:
   Adafruit_BME280(int8_t cspin);
   Adafruit_BME280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin);
   */
+  /*
   bool begin(void);
   bool begin(TwoWire *theWire);
+*/
   bool begin(uint8_t addr);
+  /*
   bool begin(uint8_t addr, TwoWire *theWire);
+  */
   bool init();
 
   void setSampling(sensor_mode mode = BME280_MODE_NORMAL,
