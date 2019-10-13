@@ -84,12 +84,13 @@ bool Adafruit_BME280::begin(TwoWire *theWire) {
     @returns true on success, false otherwise
 */
 /**************************************************************************/
+/*
 bool Adafruit_BME280::begin(uint8_t addr) {
   _i2caddr = addr;
   _wire = &Wire;
   return init();
 }
-
+*/
 /**************************************************************************/
 /*!
     @brief  Initialise sensor with given parameters / settings
@@ -98,13 +99,13 @@ bool Adafruit_BME280::begin(uint8_t addr) {
     @returns true on success, false otherwise
 */
 /**************************************************************************/
-/*
+
 bool Adafruit_BME280::begin(uint8_t addr, TwoWire *theWire) {
   _i2caddr = addr;
   _wire = theWire;
   return init();
 }
-*/
+
 /**************************************************************************/
 /*!
     @brief  Initialise sensor with given parameters / settings
