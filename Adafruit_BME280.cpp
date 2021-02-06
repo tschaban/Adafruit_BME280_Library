@@ -74,12 +74,12 @@ Adafruit_BME280::~Adafruit_BME280(void) {
 }
 
 /*!
-@brief Initialise sensor with given parameters / settings *
-           @param addr the I2C address the device can be found on *
-           @param theWire the I2C object to use,
-      defaults to &Wire *@returns true on success,
-      false otherwise * /
-          bool Adafruit_BME280::begin(uint8_t addr, TwoWire *theWire) {
+ *   @brief  Initialise sensor with given parameters / settings
+ *   @param addr the I2C address the device can be found on
+ *   @param theWire the I2C object to use, defaults to &Wire
+ *   @returns true on success, false otherwise
+ */
+bool Adafruit_BME280::begin(uint8_t addr, TwoWire *theWire) {
   bool status = false;
   _i2caddr = addr;
   _wire = theWire;
@@ -92,7 +92,6 @@ Adafruit_BME280::~Adafruit_BME280(void) {
  *   @brief  Initialise sensor with given parameters / settings
  *   @returns true on success, false otherwise
  */
-
 bool Adafruit_BME280::init() {
   // init I2C or SPI sensor interface
   if (_cs == -1) {
@@ -375,7 +374,6 @@ bool Adafruit_BME280::takeForcedMeasurement(void) {
 /*!
  *   @brief  Reads the factory-set coefficients
  */
-
 void Adafruit_BME280::readCoefficients(void) {
   _bme280_calib.dig_T1 = read16_LE(BME280_REGISTER_DIG_T1);
   _bme280_calib.dig_T2 = readS16_LE(BME280_REGISTER_DIG_T2);
