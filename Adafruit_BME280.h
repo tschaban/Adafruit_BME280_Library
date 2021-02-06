@@ -14,6 +14,7 @@
  * Written by Kevin "KTOWN" Townsend for Adafruit Industries.
  *
  * BSD license, all text here must be included in any redistribution.
+ * See the LICENSE file for details.
  *
  * Modifications:
  *    - required by AFE firmware;
@@ -24,28 +25,24 @@
 #ifndef __BME280_H__
 #define __BME280_H__
 
-#if (ARDUINO >= 100)
 #include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
 
 #include <Adafruit_Sensor.h>
+#include <SPI.h>
 #include <Wire.h>
 
-/**************************************************************************/
 /*!
-    @brief  default I2C address
-*/
-/**************************************************************************/
-#define BME280_ADDRESS (0x76)
-/*=========================================================================*/
+ *  @brief  default I2C address
+ */
+#define BME280_ADDRESS (0x77)           // Primary I2C Address
+                                        /*!
+                                         *  @brief  alternate I2C address
+                                         */
+#define BME280_ADDRESS_ALTERNATE (0x76) // Alternate Address
 
-/**************************************************************************/
 /*!
-    @brief Register addresses
-*/
-/**************************************************************************/
+ *  @brief Register addresses
+ */
 enum {
   BME280_REGISTER_DIG_T1 = 0x88,
   BME280_REGISTER_DIG_T2 = 0x8A,
@@ -112,26 +109,49 @@ typedef struct {
 } bme280_calib_data;
 /*=========================================================================*/
 
-/*
-class Adafruit_BME280_Unified : public Adafruit_Sensor
-{
-  public:
-    Adafruit_BME280_Unified(int32_t sensorID = -1);
+class Adafruit_BME280;
 
-    bool  begin(uint8_t addr = BME280_ADDRESS);
-    void  getTemperature(float *temp);
-    void  getPressure(float *pressure);
-    float pressureToAltitude(float seaLevel, float atmospheric, float temp);
-    float seaLevelForAltitude(float altitude, float atmospheric, float temp);
-    void  getEvent(sensors_event_t*);
-    void  getSensor(sensor_t*);
+/** Adafruit Unified Sensor interface for temperature component of BME280 */
+class Adafruit_BME280_Temp : public Adafruit_Sensor {
+public:
+  /** @brief Create an Adafruit_Sensor compatible object for the temp sensor
+      @param parent A pointer to the BME280 class */
+  Adafruit_BME280_Temp(Adafruit_BME280 *parent) { _theBME280 = parent; }
+  bool getEvent(sensors_event_t *);
+  void getSensor(sensor_t *);
 
-  private:
-    uint8_t   _i2c_addr;
-    int32_t   _sensorID;
+private:
+  int _sensorID = 280;
+  Adafruit_BME280 *_theBME280 = NULL;
 };
 
-*/
+/** Adafruit Unified Sensor interface for pressure component of BME280 */
+class Adafruit_BME280_Pressure : public Adafruit_Sensor {
+public:
+  /** @brief Create an Adafruit_Sensor compatible object for the pressure sensor
+      @param parent A pointer to the BME280 class */
+  Adafruit_BME280_Pressure(Adafruit_BME280 *parent) { _theBME280 = parent; }
+  bool getEvent(sensors_event_t *);
+  void getSensor(sensor_t *);
+
+private:
+  int _sensorID = 280;
+  Adafruit_BME280 *_theBME280 = NULL;
+};
+
+/** Adafruit Unified Sensor interface for humidity component of BME280 */
+class Adafruit_BME280_Humidity : public Adafruit_Sensor {
+public:
+  /** @brief Create an Adafruit_Sensor compatible object for the humidity sensor
+      @param parent A pointer to the BME280 class */
+  Adafruit_BME280_Humidity(Adafruit_BME280 *parent) { _theBME280 = parent; }
+  bool getEvent(sensors_event_t *);
+  void getSensor(sensor_t *);
+
+private:
+  int _sensorID = 280;
+  Adafruit_BME280 *_theBME280 = NULL;
+};
 
 /**************************************************************************/
 /*!
@@ -157,13 +177,12 @@ public:
   /**************************************************************************/
   /*!
       @brief  power modes
-
   */
   /**************************************************************************/
   enum sensor_mode {
-    BME280_MODE_SLEEP = 0b00,
-    BME280_MODE_FORCED = 0b01,
-    BME280_MODE_NORMAL = 0b11
+    MODE_SLEEP = 0b00,
+    MODE_FORCED = 0b01,
+    MODE_NORMAL = 0b11
   };
 
   /**************************************************************************/
@@ -196,40 +215,53 @@ public:
   };
 
   // constructors
-  Adafruit_BME280(void);
-  /* SPI Releated
-  Adafruit_BME280(int8_t cspin);
+  Adafruit_BME280();
+  Adafruit_BME280(int8_t cspin, SPIClass *theSPI = &SPI);
   Adafruit_BME280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin);
-  bool begin(void);
-  bool begin(TwoWire *theWire);
-  bool begin(uint8_t addr);
-  */
-
-  bool begin(uint8_t addr, TwoWire *theWire);
+  ~Adafruit_BME280(void);
+  bool begin(uint8_t addr = BME280_ADDRESS, TwoWire *theWire = &Wire);
   bool init();
 
-  void setSampling(sensor_mode mode = BME280_MODE_NORMAL,
+  void setSampling(sensor_mode mode = MODE_NORMAL,
                    sensor_sampling tempSampling = SAMPLING_X16,
                    sensor_sampling pressSampling = SAMPLING_X16,
                    sensor_sampling humSampling = SAMPLING_X16,
                    sensor_filter filter = FILTER_OFF,
                    standby_duration duration = STANDBY_MS_0_5);
 
-  void takeForcedMeasurement();
+  bool takeForcedMeasurement(void);
   float readTemperature(void);
   float readPressure(void);
   float readHumidity(void);
 
   float readAltitude(float seaLevel);
   float seaLevelForAltitude(float altitude, float pressure);
+  uint32_t sensorID(void);
 
-private:
-  TwoWire *_wire;
+  float getTemperatureCompensation(void);
+  void setTemperatureCompensation(float);
+
+  Adafruit_Sensor *getTemperatureSensor(void);
+  Adafruit_Sensor *getPressureSensor(void);
+  Adafruit_Sensor *getHumiditySensor(void);
+
+protected:
+  TwoWire *_wire; //!< pointer to a TwoWire object
+  SPIClass *_spi; //!< pointer to SPI object
+
+  Adafruit_BME280_Temp *temp_sensor = NULL;
+  //!< Adafruit_Sensor compat temperature sensor component
+
+  Adafruit_BME280_Pressure *pressure_sensor = NULL;
+  //!< Adafruit_Sensor compat pressure sensor component
+
+  Adafruit_BME280_Humidity *humidity_sensor = NULL;
+  //!< Adafruit_Sensor compat humidity sensor component
+
   void readCoefficients(void);
   bool isReadingCalibration(void);
-  /* SPI Releated
   uint8_t spixfer(uint8_t x);
-  */
+
   void write8(byte reg, byte value);
   uint8_t read8(byte reg);
   uint16_t read16(byte reg);
@@ -238,15 +270,27 @@ private:
   uint16_t read16_LE(byte reg); // little endian
   int16_t readS16_LE(byte reg); // little endian
 
-  uint8_t _i2caddr;
-  int32_t _sensorID;
-  int32_t t_fine;
+  uint8_t _i2caddr;  //!< I2C addr for the TwoWire interface
+  int32_t _sensorID; //!< ID of the BME Sensor
+  int32_t t_fine; //!< temperature with high resolution, stored as an attribute
+                  //!< as this is used for temperature compensation reading
+                  //!< humidity and pressure
 
-  int8_t _cs, _mosi, _miso, _sck;
+  int8_t _cs;   //!< for the SPI interface
+  int8_t _mosi; //!< for the SPI interface
+  int8_t _miso; //!< for the SPI interface
+  int8_t _sck;  //!< for the SPI interface
 
-  bme280_calib_data _bme280_calib;
+  int32_t t_fine_adjust = 0; //!< add to compensate temp readings and in turn
+                             //!< to pressure and humidity readings
 
-  // The config register
+  bme280_calib_data _bme280_calib; //!< here calibration data is stored
+
+  /**************************************************************************/
+  /*!
+      @brief  config register
+  */
+  /**************************************************************************/
   struct config {
     // inactive duration (standby time) in normal mode
     // 000 = 0.5 ms
@@ -257,7 +301,7 @@ private:
     // 101 = 1000 ms
     // 110 = 10 ms
     // 111 = 20 ms
-    unsigned int t_sb : 3;
+    unsigned int t_sb : 3; ///< inactive duration (standby time) in normal mode
 
     // filter settings
     // 000 = filter off
@@ -265,17 +309,22 @@ private:
     // 010 = 4x filter
     // 011 = 8x filter
     // 100 and above = 16x filter
-    unsigned int filter : 3;
+    unsigned int filter : 3; ///< filter settings
 
     // unused - don't set
-    unsigned int none : 1;
-    unsigned int spi3w_en : 1;
+    unsigned int none : 1;     ///< unused - don't set
+    unsigned int spi3w_en : 1; ///< unused - don't set
 
-    unsigned int get() { return (t_sb << 5) | (filter << 3) | spi3w_en; }
+    /// @return combined config register
+    unsigned int get() { return (t_sb << 5) | (filter << 2) | spi3w_en; }
   };
-  config _configReg;
+  config _configReg; //!< config register object
 
-  // The ctrl_meas register
+  /**************************************************************************/
+  /*!
+      @brief  ctrl_meas register
+  */
+  /**************************************************************************/
   struct ctrl_meas {
     // temperature oversampling
     // 000 = skipped
@@ -284,7 +333,7 @@ private:
     // 011 = x4
     // 100 = x8
     // 101 and above = x16
-    unsigned int osrs_t : 3;
+    unsigned int osrs_t : 3; ///< temperature oversampling
 
     // pressure oversampling
     // 000 = skipped
@@ -293,21 +342,26 @@ private:
     // 011 = x4
     // 100 = x8
     // 101 and above = x16
-    unsigned int osrs_p : 3;
+    unsigned int osrs_p : 3; ///< pressure oversampling
 
     // device mode
     // 00       = sleep
     // 01 or 10 = forced
     // 11       = normal
-    unsigned int mode : 2;
+    unsigned int mode : 2; ///< device mode
 
-    unsigned int get() { return (osrs_t << 5) | (osrs_p << 3) | mode; }
+    /// @return combined ctrl register
+    unsigned int get() { return (osrs_t << 5) | (osrs_p << 2) | mode; }
   };
-  ctrl_meas _measReg;
+  ctrl_meas _measReg; //!< measurement register object
 
-  // The ctrl_hum register
+  /**************************************************************************/
+  /*!
+      @brief  ctrl_hum register
+  */
+  /**************************************************************************/
   struct ctrl_hum {
-    // unused - don't set
+    /// unused - don't set
     unsigned int none : 5;
 
     // pressure oversampling
@@ -317,11 +371,12 @@ private:
     // 011 = x4
     // 100 = x8
     // 101 and above = x16
-    unsigned int osrs_h : 3;
+    unsigned int osrs_h : 3; ///< pressure oversampling
 
+    /// @return combined ctrl hum register
     unsigned int get() { return (osrs_h); }
   };
-  ctrl_hum _humReg;
+  ctrl_hum _humReg; //!< hum register object
 };
 
 #endif
