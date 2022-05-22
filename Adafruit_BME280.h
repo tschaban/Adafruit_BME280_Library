@@ -15,6 +15,8 @@
  *
  * BSD license, all text here must be included in any redistribution.
  * See the LICENSE file for details.
+ * 
+ * AFE/1.0  added support for BMP280
  *
  */
 
@@ -35,6 +37,17 @@
                                          *  @brief  alternate I2C address
                                          */
 #define BME280_ADDRESS_ALTERNATE (0x76) // Alternate Address
+
+/**
+ * @brief Type of the sensor
+ * Added for AFE Firmware
+ * 
+ */
+
+enum {
+  BME280_SENSOR = 0x60,
+  BMP280_SENSOR = 0x58
+};
 
 /*!
  *  @brief Register addresses
